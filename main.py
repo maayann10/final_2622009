@@ -3,13 +3,14 @@ import time
 from bs4 import BeautifulSoup
 import requests
 
-# 1. スクレイピングするURL（1ページ目〜2ページ目を取得する例）
+# 1. スクレイピングするURL（全ページを順番に取得）
 base_url = "https://github.com/orgs/google/repositories"
 headers = {"User-Agent": "Mozilla/5.0"}
 
 repo_list = []
+page = 1
 
-for page in range(1, 3):  # 1ページ目と2ページ目を取得
+while True:
   url = f"{base_url}?page={page}"
   print(f"{page}ページ目を取得中...")
 
@@ -20,6 +21,11 @@ for page in range(1, 3):  # 1ページ目と2ページ目を取得
   title_containers = soup.select(
       "div[data-listview-item-title-container='true']"
   )
+
+  # リポジトリが見つからなくなったら（最終ページを超えたら）終了
+  if not title_containers:
+    print("全ページの取得が完了しました！")
+    break
 
   for title_div in title_containers:
     # ① リポジトリ名
@@ -39,6 +45,7 @@ for page in range(1, 3):  # 1ページ目と2ページ目を取得
 
     repo_list.append((repo_name, language, stars))
 
+  page += 1
   # 【重要】課題の必須条件：サーバー負荷軽減のため1秒待機
   time.sleep(1)
 
@@ -72,4 +79,5 @@ rows = cur.fetchall()
 for row in rows:
   print(row)
 
+print(f"\n合計取得件数: {len(rows)}件")
 conn.close()
